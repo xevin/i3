@@ -454,125 +454,125 @@ local function get_container(fs, data, player, yoffset, ctn_len, award_list, awa
 	image(4.45, yoffset + 3.75, 1, 1, PNG.trash)
 
 	local yextra = damage_enabled and 5.5 or 5
+	--
+	--for i, title in ipairs(i3.categories) do
+	--	local btn_name = fmt("btn_%s", title)
+	--	fs("style[btn_%s;fgimg=%s;fgimg_hovered=%s;content_offset=0]", title,
+	--		data.subcat == i and PNG[fmt("%s_hover", title)] or PNG[title],
+	--		PNG[fmt("%s_hover", title)])
+	--	image_button(0.25 + ((i - 1) * 1.18), yextra - 0.2, 0.5, 0.5, "", btn_name, "")
+	--	fs("tooltip[%s;%s]", btn_name, title:gsub("^%l", upper))
+	--end
+	--
+	--box(0, yextra + 0.45, ctn_len, 0.045, "#bababa50")
+	--image((data.subcat - 1) * 1.18, yextra + 0.45, 1, 0.045, PNG.highlight)
 
-	for i, title in ipairs(i3.categories) do
-		local btn_name = fmt("btn_%s", title)
-		fs("style[btn_%s;fgimg=%s;fgimg_hovered=%s;content_offset=0]", title,
-			data.subcat == i and PNG[fmt("%s_hover", title)] or PNG[title],
-			PNG[fmt("%s_hover", title)])
-		image_button(0.25 + ((i - 1) * 1.18), yextra - 0.2, 0.5, 0.5, "", btn_name, "")
-		fs("tooltip[%s;%s]", btn_name, title:gsub("^%l", upper))
-	end
+	--local function not_installed(modname)
+	--	hypertext(0, yextra + 0.9, ctn_len, 0.6, "not_installed",
+	--		fmt("<global size=16><center><style color=%s font=mono>%s</style> not installed</center>",
+	--			colors.blue, modname))
+	--end
 
-	box(0, yextra + 0.45, ctn_len, 0.045, "#bababa50")
-	image((data.subcat - 1) * 1.18, yextra + 0.45, 1, 0.045, PNG.highlight)
-
-	local function not_installed(modname)
-		hypertext(0, yextra + 0.9, ctn_len, 0.6, "not_installed",
-			fmt("<global size=16><center><style color=%s font=mono>%s</style> not installed</center>",
-				colors.blue, modname))
-	end
-
-	if data.subcat == 1 then
-		get_bag_fs(fs, data, name, esc_name, bag_size, yextra)
-
-	elseif data.subcat == 2 then
-		if not i3.modules.armor then
-			return not_installed "3d_armor"
-		end
-
-		local armor_def = armor.def[name]
-		local _, armor_inv = armor:get_valid_player(player, "3d_armor")
-
-		fs("list[detached:%s_armor;armor;0,%f;5,1;]", esc_name, yextra + 0.7)
-
-		for i = 1, 5 do
-			local stack = armor_inv:get_stack("armor", i)
-
-			if stack:is_empty() then
-				local tips = {ES"Helmet", ES"Chest", ES"Leggings", ES"Boots", ES"Shield"}
-				local x = (i - 1) + ((i - 1) * 0.15)
-				local y = yextra + 0.7
-
-				image(x, y, 1, 1, fmt("i3_armor_%u.png", i))
-				tooltip(x, y, 1, 1, tips[i])
-			end
-		end
-
-		local box_len, max_level, max_heal = 4, 85, 60
-		local bar_lvl = (armor_def.level * box_len) / max_level
-		local bar_heal = (armor_def.heal * box_len) / max_heal
-
-		fs"style_type[label;font_size=15]"
-
-		box(0.8, yextra + 1.95, box_len, 0.4, "#101010")
-		fs"style_type[box;colors=#9dc34c80,#9dc34c,#9dc34c,#9dc34c80]"
-		box(0.8, yextra + 1.95, bar_lvl, 0.4, "")
-		label(1.1, yextra + 2.15, ES"Armor level")
-
-		box(0.8, yextra + 2.55, box_len, 0.4, "#101010")
-		fs"style_type[box;colors=#4466aa80,#4466aa,#4466aa,#4466aa80]"
-		box(0.8, yextra + 2.55, bar_heal, 0.4, "")
-		label(1.1, yextra + 2.75, ES"Armor healing")
-
-		fs"style_type[label;font_size=16]"
-
-	elseif data.subcat == 3 then
-		if not i3.modules.skins then
-			return not_installed "skinsdb"
-		end
-
-		local _skins = skins.get_skinlist_for_player(name)
-		local skin_name = skins.get_player_skin(player).name
-		local spp, add_y = 24, 0
-
-		if #_skins > spp then
-			local btn_y = yextra + 0.75
-			add_y += 0.6
-
-			data.skin_pagemax = max(1, ceil(#_skins / spp))
-
-			image_button(1.5, btn_y, 0.35, 0.35, "", "prev_skin", "")
-			image_button(3.85, btn_y, 0.35, 0.35, "", "next_skin", "")
-
-			fs"style[skin_page;font=bold;font_size=18]"
-			button(1.85, btn_y - 0.23, 2, 0.8, "skin_page",
-				fmt("%s / %u", clr(colors.yellow, data.skin_pagenum), data.skin_pagemax))
-		end
-
-		local first = (data.skin_pagenum - 1) * spp
-		local last = first + spp - 1
-
-		for i = first, last do
-			local skin = _skins[i + 1]
-			if not skin then break end
-			local btn_name = fmt("skin_btn_%u", i + 1)
-
-			fs([[ style[%s;padding=10;fgimg=%s;bgimg=%s;bgimg_hovered=i3_btn9_hovered.png;
-					bgimg_pressed=i3_btn9_pressed.png;bgimg_middle=4,6;sound=] ]],
-				btn_name, skin:get_preview(),
-				skin.name == skin_name and "i3_btn9_hovered.png" or "i3_btn9.png")
-
-			local X = (i % 3) * 1.93
-
-			local Y = ceil((i % spp - X) / 3 + 1)
-			      Y += (Y * 2.45) + yextra - 2.75 + add_y
-
-			image_button(X, Y, 1.86, 3.4, "", btn_name, "")
-			fs("tooltip[%s;%s]", btn_name, ESC(skin.name))
-		end
-
-	elseif data.subcat == 4 then
-		if not i3.modules.awards then
-			return not_installed "awards"
-		end
-
-		yextra = yextra + 0.7
-		get_award_list(data, fs, ctn_len, yextra, award_list, awards_unlocked, award_list_nb)
-
-	elseif data.subcat == 5 then
-		get_waypoint_fs(fs, data, player, yextra, ctn_len)
-	end
+	--if data.subcat == 1 then
+	--	get_bag_fs(fs, data, name, esc_name, bag_size, yextra)
+	--
+	--elseif data.subcat == 2 then
+	--	if not i3.modules.armor then
+	--		return not_installed "3d_armor"
+	--	end
+	--
+	--	local armor_def = armor.def[name]
+	--	local _, armor_inv = armor:get_valid_player(player, "3d_armor")
+	--
+	--	fs("list[detached:%s_armor;armor;0,%f;5,1;]", esc_name, yextra + 0.7)
+	--
+	--	for i = 1, 5 do
+	--		local stack = armor_inv:get_stack("armor", i)
+	--
+	--		if stack:is_empty() then
+	--			local tips = {ES"Helmet", ES"Chest", ES"Leggings", ES"Boots", ES"Shield"}
+	--			local x = (i - 1) + ((i - 1) * 0.15)
+	--			local y = yextra + 0.7
+	--
+	--			image(x, y, 1, 1, fmt("i3_armor_%u.png", i))
+	--			tooltip(x, y, 1, 1, tips[i])
+	--		end
+	--	end
+	--
+	--	local box_len, max_level, max_heal = 4, 85, 60
+	--	local bar_lvl = (armor_def.level * box_len) / max_level
+	--	local bar_heal = (armor_def.heal * box_len) / max_heal
+	--
+	--	fs"style_type[label;font_size=15]"
+	--
+	--	box(0.8, yextra + 1.95, box_len, 0.4, "#101010")
+	--	fs"style_type[box;colors=#9dc34c80,#9dc34c,#9dc34c,#9dc34c80]"
+	--	box(0.8, yextra + 1.95, bar_lvl, 0.4, "")
+	--	label(1.1, yextra + 2.15, ES"Armor level")
+	--
+	--	box(0.8, yextra + 2.55, box_len, 0.4, "#101010")
+	--	fs"style_type[box;colors=#4466aa80,#4466aa,#4466aa,#4466aa80]"
+	--	box(0.8, yextra + 2.55, bar_heal, 0.4, "")
+	--	label(1.1, yextra + 2.75, ES"Armor healing")
+	--
+	--	fs"style_type[label;font_size=16]"
+	--
+	--elseif data.subcat == 3 then
+	--	if not i3.modules.skins then
+	--		return not_installed "skinsdb"
+	--	end
+	--
+	--	local _skins = skins.get_skinlist_for_player(name)
+	--	local skin_name = skins.get_player_skin(player).name
+	--	local spp, add_y = 24, 0
+	--
+	--	if #_skins > spp then
+	--		local btn_y = yextra + 0.75
+	--		add_y += 0.6
+	--
+	--		data.skin_pagemax = max(1, ceil(#_skins / spp))
+	--
+	--		image_button(1.5, btn_y, 0.35, 0.35, "", "prev_skin", "")
+	--		image_button(3.85, btn_y, 0.35, 0.35, "", "next_skin", "")
+	--
+	--		fs"style[skin_page;font=bold;font_size=18]"
+	--		button(1.85, btn_y - 0.23, 2, 0.8, "skin_page",
+	--			fmt("%s / %u", clr(colors.yellow, data.skin_pagenum), data.skin_pagemax))
+	--	end
+	--
+	--	local first = (data.skin_pagenum - 1) * spp
+	--	local last = first + spp - 1
+	--
+	--	for i = first, last do
+	--		local skin = _skins[i + 1]
+	--		if not skin then break end
+	--		local btn_name = fmt("skin_btn_%u", i + 1)
+	--
+	--		fs([[ style[%s;padding=10;fgimg=%s;bgimg=%s;bgimg_hovered=i3_btn9_hovered.png;
+	--				bgimg_pressed=i3_btn9_pressed.png;bgimg_middle=4,6;sound=] ]],
+	--			btn_name, skin:get_preview(),
+	--			skin.name == skin_name and "i3_btn9_hovered.png" or "i3_btn9.png")
+	--
+	--		local X = (i % 3) * 1.93
+	--
+	--		local Y = ceil((i % spp - X) / 3 + 1)
+	--		      Y += (Y * 2.45) + yextra - 2.75 + add_y
+	--
+	--		image_button(X, Y, 1.86, 3.4, "", btn_name, "")
+	--		fs("tooltip[%s;%s]", btn_name, ESC(skin.name))
+	--	end
+	--
+	--elseif data.subcat == 4 then
+	--	if not i3.modules.awards then
+	--		return not_installed "awards"
+	--	end
+	--
+	--	yextra = yextra + 0.7
+	--	get_award_list(data, fs, ctn_len, yextra, award_list, awards_unlocked, award_list_nb)
+	--
+	--elseif data.subcat == 5 then
+	--	get_waypoint_fs(fs, data, player, yextra, ctn_len)
+	--end
 end
 
 local function show_settings(fs, data)
@@ -763,10 +763,10 @@ local function get_inventory_fs(player, data, fs)
 		end
 	end
 
-	fs([[   scrollbaroptions[arrows=hide;thumbsize=%d;max=%d]
-		scrollbar[%f,0.2;0.2,%f;vertical;scrbar_inv;%u]
-		scrollbaroptions[arrows=default;thumbsize=0;max=1000]   ]],
-	(max_val * 4) / 12, max_val, 9.8, ctn_hgt, data.scrbar_inv)
+	--fs([[   scrollbaroptions[arrows=hide;thumbsize=%d;max=%d]
+	--	scrollbar[%f,0.2;0.2,%f;vertical;scrbar_inv;%u]
+	--	scrollbaroptions[arrows=default;thumbsize=0;max=1000]   ]],
+	--(max_val * 4) / 3, max_val, 9.8, ctn_hgt, data.scrbar_inv)
 
 	fs("scroll_container[3.9,0.2;%f,%f;scrbar_inv;vertical]", ctn_len, ctn_hgt)
 	get_container(fs, data, player, yoffset, ctn_len, award_list, awards_unlocked, award_list_nb, bag_size)
